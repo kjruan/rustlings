@@ -5,7 +5,7 @@
 // https://doc.rust-lang.org/std/convert/trait.TryFrom.html
 
 #![allow(clippy::useless_vec)]
-use std::convert::{TryFrom, TryInto};
+use std::convert::{ TryFrom, TryInto };
 
 #[derive(Debug, PartialEq)]
 struct Color {
@@ -28,14 +28,46 @@ enum IntoColorError {
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
 
-    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {}
+    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        if
+            tuple.0 < 0 ||
+            tuple.0 >= 255 ||
+            tuple.1 < 0 ||
+            tuple.1 >= 255 ||
+            tuple.2 < 0 ||
+            tuple.2 >= 255
+        {
+            return Err(IntoColorError::IntConversion);
+        }
+        Ok(Color {
+            red: tuple.0 as u8,
+            green: tuple.1 as u8,
+            blue: tuple.2 as u8,
+        })
+    }
 }
 
 // TODO: Array implementation.
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
 
-    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {}
+    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        if
+            arr[0] < 0 ||
+            arr[0] >= 255 ||
+            arr[1] < 0 ||
+            arr[1] >= 255 ||
+            arr[2] < 0 ||
+            arr[2] >= 255
+        {
+            return Err(IntoColorError::IntConversion);
+        }
+        Ok(Color {
+            red: arr[0] as u8,
+            green: arr[1] as u8,
+            blue: arr[2] as u8,
+        })
+    }
 }
 
 // TODO: Slice implementation.
@@ -43,7 +75,27 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
 
-    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {}
+    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if let [r, g, b] = slice {
+            if
+                *r < 0 ||
+                *r >= 255 ||
+                *g < 0 ||
+                *g >= 255 ||
+                *b < 0 ||
+                *b >= 255
+            {
+                return Err(IntoColorError::IntConversion);
+            }
+            Ok(Color {
+                red: *r as u8,
+                green: *g as u8,
+                blue: *b as u8,
+            })
+        } else {
+            Err(IntoColorError::BadLen)
+        }
+    }
 }
 
 fn main() {
@@ -88,14 +140,11 @@ mod tests {
     fn test_tuple_correct() {
         let c: Result<Color, _> = (183, 65, 14).try_into();
         assert!(c.is_ok());
-        assert_eq!(
-            c.unwrap(),
-            Color {
-                red: 183,
-                green: 65,
-                blue: 14,
-            }
-        );
+        assert_eq!(c.unwrap(), Color {
+            red: 183,
+            green: 65,
+            blue: 14,
+        });
     }
 
     #[test]
@@ -120,14 +169,11 @@ mod tests {
     fn test_array_correct() {
         let c: Result<Color, _> = [183, 65, 14].try_into();
         assert!(c.is_ok());
-        assert_eq!(
-            c.unwrap(),
-            Color {
-                red: 183,
-                green: 65,
-                blue: 14
-            }
-        );
+        assert_eq!(c.unwrap(), Color {
+            red: 183,
+            green: 65,
+            blue: 14,
+        });
     }
 
     #[test]
@@ -153,14 +199,11 @@ mod tests {
         let v = vec![183, 65, 14];
         let c: Result<Color, _> = Color::try_from(&v[..]);
         assert!(c.is_ok());
-        assert_eq!(
-            c.unwrap(),
-            Color {
-                red: 183,
-                green: 65,
-                blue: 14,
-            }
-        );
+        assert_eq!(c.unwrap(), Color {
+            red: 183,
+            green: 65,
+            blue: 14,
+        });
     }
 
     #[test]
